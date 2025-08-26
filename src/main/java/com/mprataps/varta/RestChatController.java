@@ -18,6 +18,8 @@ public class RestChatController {
 
   @Autowired
   private ChatService chatService;
+  @Autowired
+  private WebSocketHandler webSocketHandler;
 
   @GetMapping("/messages")
   public ResponseEntity<List<Message> > getMessages(@RequestParam(value = "since", required = false) Integer since) {
@@ -35,6 +37,8 @@ public class RestChatController {
     }
     
     Message createdMessage = chatService.addMessage(message.getUserName(), message.getContent());
+    // broadcast this polling client message to all the streaming clients.
+    webSocketHandler.broadcastMessage(createdMessage);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
   }
 

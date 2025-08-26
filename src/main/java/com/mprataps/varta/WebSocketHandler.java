@@ -85,7 +85,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
   }
 
-  private void broadcastMessage(Message message){
+  public void broadcastMessage(Message message){
 
     String messageJson;
 

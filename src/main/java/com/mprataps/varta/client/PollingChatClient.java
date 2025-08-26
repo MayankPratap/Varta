@@ -60,7 +60,7 @@ public class PollingChatClient {
     System.out.println("--- Polling Chat Client --- ");
 
     // Get username
-    System.out.println("Enter your user name: ");
+    System.out.print("Enter your user name: ");
     userName = scanner.nextLine().trim();
 
     if(userName.isEmpty()) {
