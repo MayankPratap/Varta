@@ -12,6 +12,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class PollingChatClient {
 
   private static final String BASE_URL = "http://localhost:8080/api";
-  private static final int POLL_INTERVAL_SECONDS = 20;
+  private static final int POLL_INTERVAL_SECONDS = 10;
 
   private final HttpClient httpClient;
   private final ObjectMapper objectMapper;
@@ -67,7 +68,6 @@ public class PollingChatClient {
       System.out.println("Username cannot be empty ");
       return;
     }
-
 
     System.out.println("Connected! Type messages (or 'quit' to exit):\"");
     System.out.println("Messages will update every " + POLL_INTERVAL_SECONDS + " seconds\n");
@@ -117,17 +117,19 @@ public class PollingChatClient {
   }
 
   private void handleUserInput() {
+    System.out.println("Commands: 'quit', or type a message");
 
     String input;
-
     while((input = scanner.nextLine()) != null) {
-
-      if ("quit".equalsIgnoreCase(input.trim())) {
-        break;
-      }
-
-      if (!input.trim().isEmpty()) {
-        sendMessage(input.trim());
+      switch (input.trim().toLowerCase()) {
+        case "quit" -> {
+          return;
+        }
+        default -> {
+          if (!input.trim().isEmpty()) {
+            sendMessage(input.trim());
+          }
+        }
       }
     }
 

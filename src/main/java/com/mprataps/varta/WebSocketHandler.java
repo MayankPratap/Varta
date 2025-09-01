@@ -2,6 +2,7 @@ package com.mprataps.varta;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mprataps.varta.ai.ViriAIService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
   @Autowired
   private ChatService chatService;
 
+  @Autowired
+  private ViriAIService viri;
+
   private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
   // Thread-safe map for concurrent access.
   private final ConcurrentHashMap<String, WebSocketSession> sessionsMap = new ConcurrentHashMap<>();
@@ -31,7 +35,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {
       sessionsMap.put(session.getId(), session);
       log.info("Connected to web socket at {}", session.getId());
-      log.info("Total web socket connections: " + sessionsMap.size());
+
+      System.out.println("WebSocket client connected. Total: " + sessionsMap.size());
 
       // send chat history to new client.
       sendChatHistory(session);
@@ -40,6 +45,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
   @Override
   public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
     sessionsMap.remove(session.getId());
+    System.out.println("WebSocket client disconnected. Total: " + sessionsMap.size());
     log.info("Disconnected from web socket : {} with status: {}", session.getId(), status);
   }
 
@@ -58,6 +64,19 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
       // broadcast to all clients.
       broadcastMessage(savedMessage);
+
+      // check if AI is invoked and only then call the chat
+      String aiResponse = null;
+      if(viri.isAIInvoked(message.getPayload())){
+        aiResponse = viri.chat(message.getPayload());
+        if(aiResponse != null){
+          // add this to chat server messages list so that polling clients can get the response.
+          Message aiMessage = chatService.addMessage("Viri", aiResponse);
+          // broadcast ai's response to all websocket clients.
+          broadcastMessage(aiMessage);
+        }
+
+      }
 
     }catch(Exception e){
       log.error("Error while handling message from web socket: {}: {}",  session.getId(), e.getMessage());
@@ -120,8 +139,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         return true; // remove problematic session.
       }
 
-
-
     });
 
   }
@@ -131,7 +148,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     log.error("Error while handling message from web socket: {}: {}",  session.getId(), exception.getMessage());
     sessionsMap.remove(session.getId());
-  }
 
+  }
 
 }

@@ -1,4 +1,5 @@
 package com.mprataps.varta;
+import com.mprataps.varta.ai.ViriAIService;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -20,27 +23,50 @@ public class RestChatController {
   private ChatService chatService;
   @Autowired
   private WebSocketHandler webSocketHandler;
+  @Autowired
+  private ViriAIService viri;
+
 
   @GetMapping("/messages")
   public ResponseEntity<List<Message> > getMessages(@RequestParam(value = "since", required = false) Integer since) {
-    if (since != null) {
-      return ResponseEntity.ok(chatService.getMessagesSince(since));
-    }
-    return ResponseEntity.ok(chatService.getMessages());
+
+      List<Message> result;
+      if (since != null) {
+        result = chatService.getMessagesSince(since);
+      } else {
+        result = chatService.getMessages();
+      }
+
+      return ResponseEntity.ok(result);
+
   }
 
   @PostMapping("/messages")
   public ResponseEntity<Message> sendMessage(@RequestBody Message message) {
+
     // Basic validation
-    if (StringUtils.isBlank(message.getUserName()) ||  StringUtils.isBlank(message.getContent())) {
+    if (StringUtils.isBlank(message.getUserName()) || StringUtils.isBlank(message.getContent())) {
       return ResponseEntity.badRequest().build();
     }
-    
     Message createdMessage = chatService.addMessage(message.getUserName(), message.getContent());
+
     // broadcast this polling client message to all the streaming clients.
     webSocketHandler.broadcastMessage(createdMessage);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
-  }
 
+    // check if AI is invoked and only then call the chat
+    String aiResponse = null;
+    if(viri.isAIInvoked(message.getContent())){
+        aiResponse = viri.chat(message.getContent());
+        if(aiResponse!=null){
+          // add this to chat server messages list so that other polling clients can get the response.
+          Message aiMessage = chatService.addMessage("Viri", aiResponse);
+          // broadcast ai's response to all websocket clients.
+          webSocketHandler.broadcastMessage(aiMessage);
+        }
+    }
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
+
+  }
 
 }
