@@ -2,6 +2,16 @@
 
 Varta is a real-time chat application built with Java that demonstrates different approaches to client-server communication along with AI integration. The project showcases both traditional polling and modern WebSocket-based streaming for message delivery, enhanced with an AI assistant named "Viri."
 
+## Screenshots of working
+  -- Running Spring Boot Server using Script file. 
+     <img width="1344" height="672" alt="Screenshot 2025-09-03 at 10 23 53 PM" src="https://github.com/user-attachments/assets/378e2dcf-67fc-4b74-a118-f7376e71129d" />
+
+  -- Polling Client Asking A Question To AI Assistant "Viri" 
+     <img width="1347" height="452" alt="Screenshot 2025-09-03 at 10 23 41 PM" src="https://github.com/user-attachments/assets/bfa9d030-bea3-416e-9101-b97d54ca3b5c" />
+
+  -- Streaming Client Gets The Message of Other Clients as Well as the AI response instantly. 
+     <img width="1340" height="458" alt="Screenshot 2025-09-03 at 10 23 27 PM" src="https://github.com/user-attachments/assets/b0d2b762-a248-46e2-a6eb-a5f405c3979b" />
+
 ## Features
 
 - **Multiple Client Types:**
