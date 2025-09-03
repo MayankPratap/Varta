@@ -105,7 +105,7 @@ This client maintains a WebSocket connection for real-time message delivery.
 3. Enter your username when prompted
 4. Start chatting!
 5. To interact with the AI assistant "Viri", start your message with following phrases - "Hey Viri" or "Hello Viri" or "Hi Viri" (the AI will respond automatically)
-6. Type `/exit` to quit the client application
+6. Type `quit` to quit the client application
 
 ## AI Integration
 
